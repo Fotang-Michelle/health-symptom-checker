@@ -1,0 +1,37 @@
+.shell {
+  min-height: 100vh; display: flex; align-items: center;
+  justify-content: center; background: var(--bg); padding: 20px;
+}
+.card {
+  width: 100%; max-width: 380px; background: var(--bg2);
+  border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 36px 32px; display: flex; flex-direction: column; gap: 6px;
+}
+.brand { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; }
+.brandIcon { color: var(--accent); font-size: 16px; }
+.brandName { font-size: 14px; font-weight: 600; }
+.title { font-size: 22px; font-weight: 600; font-family: var(--font-serif); font-style: italic; }
+.subtitle { font-size: 13px; color: var(--text2); margin-bottom: 8px; }
+.error {
+  padding: 10px 14px; background: rgba(248,81,73,0.08);
+  border: 1px solid rgba(248,81,73,0.2); border-radius: var(--radius-sm);
+  font-size: 13px; color: var(--danger); margin: 4px 0;
+}
+.form { display: flex; flex-direction: column; gap: 14px; margin-top: 8px; }
+.field { display: flex; flex-direction: column; gap: 6px; }
+.label { font-size: 13px; font-weight: 500; color: var(--text2); }
+.input {
+  padding: 10px 14px; background: var(--bg3);
+  border: 1px solid var(--border); border-radius: var(--radius-sm);
+  color: var(--text); font-size: 14px; transition: border-color var(--transition);
+}
+.input:focus { outline: none; border-color: var(--accent); }
+.input::placeholder { color: var(--text3); }
+.btn {
+  padding: 12px; background: var(--accent2); color: #fff;
+  border-radius: var(--radius-sm); font-size: 15px; font-weight: 500;
+  transition: all var(--transition); margin-top: 4px;
+}
+.btn:hover:not(:disabled) { background: var(--accent); }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.footer { font-size: 13px; color: var(--text2); text-align: center; margin-top: 8px; }

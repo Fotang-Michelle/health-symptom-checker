@@ -1,0 +1,33 @@
+.shell { min-height: 100vh; display: flex; flex-direction: column; }
+
+.header {
+  display: flex; align-items: center; gap: 24px;
+  padding: 0 32px; height: 60px;
+  background: var(--bg2); border-bottom: 1px solid var(--border);
+  position: sticky; top: 0; z-index: 100;
+}
+
+.logo { display: flex; align-items: center; gap: 8px; margin-right: auto; }
+.logoIcon { color: var(--accent); font-size: 18px; }
+.logoText { font-size: 15px; font-weight: 600; letter-spacing: -0.3px; }
+
+.nav { display: flex; gap: 4px; }
+.navLink {
+  padding: 6px 14px; border-radius: var(--radius-sm);
+  font-size: 14px; color: var(--text2);
+  transition: color var(--transition), background var(--transition);
+  text-decoration: none;
+}
+.navLink:hover { color: var(--text); background: var(--bg3); text-decoration: none; }
+.active { color: var(--text) !important; background: var(--bg3); }
+
+.user { display: flex; align-items: center; gap: 12px; }
+.userEmail { font-size: 13px; color: var(--text2); }
+.logoutBtn {
+  padding: 5px 12px; border-radius: var(--radius-sm); font-size: 13px;
+  background: transparent; color: var(--text2); border: 1px solid var(--border);
+  transition: all var(--transition);
+}
+.logoutBtn:hover { color: var(--text); border-color: var(--text3); }
+
+.main { flex: 1; padding: 40px 32px; max-width: 860px; margin: 0 auto; width: 100%; }

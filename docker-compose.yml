@@ -1,0 +1,74 @@
+version: "3.9"
+
+services:
+
+  # ── Frontend (React + Nginx) ───────────────────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: symptom_frontend
+    ports:
+      - "80:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - symptom_network
+    restart: unless-stopped
+
+  # ── Backend (Flask) ────────────────────────────────────────────
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: symptom_backend
+    ports:
+      - "5000:5000"
+    environment:
+      - FLASK_ENV=production
+      - SECRET_KEY=${SECRET_KEY:-supersecretkey123}
+      - ML_SERVICE_URL=http://ml_service:5001
+      - FIREBASE_KEY_PATH=app/firebase/serviceAccountKey.json
+    volumes:
+      - ./backend/app/firebase/serviceAccountKey.json:/app/app/firebase/serviceAccountKey.json:ro
+      - backend_logs:/app/logs
+    depends_on:
+      ml_service:
+        condition: service_healthy
+    networks:
+      - symptom_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+
+  # ── ML Service (Flask + scikit-learn) ─────────────────────────
+  ml_service:
+    build:
+      context: ./ml-service
+      dockerfile: Dockerfile
+    container_name: symptom_ml
+    ports:
+      - "5001:5001"
+    networks:
+      - symptom_network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+# ── Named volumes ──────────────────────────────────────────────
+volumes:
+  backend_logs:
+
+# ── Network ────────────────────────────────────────────────────
+networks:
+  symptom_network:
+    driver: bridge
