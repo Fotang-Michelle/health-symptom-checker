@@ -1,16 +1,12 @@
 pipeline {
     agent any
 
-    // ── Environment variables ────────────────────────────────────
     environment {
-        FRONTEND_DIR  = "frontend"
-        BACKEND_DIR   = "backend"
-        ML_DIR        = "ml-service"
-        COMPOSE_FILE  = "docker-compose.yml"
-        NODE_VERSION  = "20"
+        FRONTEND_DIR = "frontend"
+        BACKEND_DIR  = "backend"
+        ML_DIR       = "ml-service"
     }
 
-    // ── Pipeline options ─────────────────────────────────────────
     options {
         timeout(time: 30, unit: "MINUTES")
         disableConcurrentBuilds()
@@ -19,25 +15,21 @@ pipeline {
 
     stages {
 
-        // ── Stage 1: Checkout ────────────────────────────────────
         stage("Checkout") {
             steps {
                 echo "=========================================="
                 echo " Checking out source code"
                 echo "=========================================="
                 checkout scm
-                echo "Source code checked out successfully."
                 sh "ls -la"
             }
         }
 
-        // ── Stage 2: Install Dependencies ───────────────────────
         stage("Install Dependencies") {
             parallel {
 
                 stage("Frontend — npm install") {
                     steps {
-                        echo "Installing React dependencies..."
                         dir("${FRONTEND_DIR}") {
                             sh "npm ci"
                             echo "Frontend dependencies installed."
@@ -47,7 +39,6 @@ pipeline {
 
                 stage("Backend — pip install") {
                     steps {
-                        echo "Installing Flask dependencies..."
                         dir("${BACKEND_DIR}") {
                             sh """
                                 python3 -m venv venv
@@ -55,14 +46,12 @@ pipeline {
                                 pip install --upgrade pip
                                 pip install -r requirements.txt
                             """
-                            echo "Backend dependencies installed."
                         }
                     }
                 }
 
                 stage("ML Service — pip install") {
                     steps {
-                        echo "Installing ML dependencies..."
                         dir("${ML_DIR}") {
                             sh """
                                 python3 -m venv venv
@@ -70,59 +59,50 @@ pipeline {
                                 pip install --upgrade pip
                                 pip install -r requirements.txt
                             """
-                            echo "ML dependencies installed."
                         }
                     }
                 }
             }
         }
 
-        // ── Stage 3: Build ───────────────────────────────────────
         stage("Build") {
             parallel {
 
                 stage("Build Frontend") {
                     steps {
-                        echo "=========================================="
-                        echo " Building React frontend"
-                        echo "=========================================="
+                        echo "Building React frontend..."
                         dir("${FRONTEND_DIR}") {
                             sh "npm run build"
-                            echo "Frontend build complete. Output in dist/"
-                            sh "ls -la dist/"
+                            echo "Frontend build complete."
                         }
                     }
                 }
 
                 stage("Train ML Model") {
                     steps {
-                        echo "=========================================="
-                        echo " Training ML model"
-                        echo "=========================================="
+                        echo "Training ML model..."
                         dir("${ML_DIR}") {
                             sh """
                                 . venv/bin/activate
                                 python training/train.py
                             """
-                            echo "ML model trained and saved."
+                            echo "ML model trained."
                         }
                     }
                 }
             }
         }
 
-        // ── Stage 4: Test ────────────────────────────────────────
         stage("Test") {
             parallel {
 
-                stage("Backend Unit Tests") {
+                stage("Backend Tests") {
                     steps {
-                        echo "=========================================="
-                        echo " Running Flask backend tests"
-                        echo "=========================================="
+                        echo "Running backend tests..."
                         dir("${BACKEND_DIR}") {
                             sh """
                                 . venv/bin/activate
+                                mkdir -p test-results
                                 python -m pytest tests/ -v \
                                     --tb=short \
                                     --junit-xml=test-results/backend-results.xml
@@ -137,14 +117,13 @@ pipeline {
                     }
                 }
 
-                stage("ML Service Tests") {
+                stage("ML Tests") {
                     steps {
-                        echo "=========================================="
-                        echo " Running ML service tests"
-                        echo "=========================================="
+                        echo "Running ML tests..."
                         dir("${ML_DIR}") {
                             sh """
                                 . venv/bin/activate
+                                mkdir -p test-results
                                 python -m pytest tests/ -v \
                                     --tb=short \
                                     --junit-xml=test-results/ml-results.xml
@@ -161,116 +140,57 @@ pipeline {
 
                 stage("Frontend Lint") {
                     steps {
-                        echo "=========================================="
-                        echo " Linting React frontend"
-                        echo "=========================================="
                         dir("${FRONTEND_DIR}") {
                             sh "npm run lint || true"
-                            echo "Frontend lint complete."
                         }
                     }
                 }
             }
         }
 
-        // ── Stage 5: Docker Build ────────────────────────────────
         stage("Docker Build") {
             steps {
-                echo "=========================================="
-                echo " Building Docker images"
-                echo "=========================================="
-                sh "docker-compose -f ${COMPOSE_FILE} build --no-cache"
-                echo "All Docker images built successfully."
-                sh "docker images | grep symptom"
+                echo "Building Docker images..."
+                sh "docker-compose -f docker-compose.yml build --no-cache"
+                echo "Docker images built."
             }
         }
 
-        // ── Stage 6: Docker Run ──────────────────────────────────
         stage("Run Application") {
             steps {
-                echo "=========================================="
-                echo " Starting all services"
-                echo "=========================================="
-
-                // Stop any existing containers first
-                sh "docker-compose -f ${COMPOSE_FILE} down --remove-orphans || true"
-
-                // Start all services in background
-                sh "docker-compose -f ${COMPOSE_FILE} up -d"
-
-                echo "Waiting for services to be healthy..."
+                echo "Starting all services..."
+                sh "docker-compose -f docker-compose.yml down --remove-orphans || true"
+                sh "docker-compose -f docker-compose.yml up -d"
                 sh "sleep 20"
-
-                // Check all containers are running
-                sh "docker-compose -f ${COMPOSE_FILE} ps"
-
-                echo "=========================================="
-                echo " Application is running at http://localhost"
-                echo "=========================================="
+                sh "docker-compose -f docker-compose.yml ps"
+                echo "Application is running at http://localhost"
             }
         }
 
-        // ── Stage 7: Health Check ────────────────────────────────
         stage("Health Check") {
             steps {
-                echo "=========================================="
-                echo " Verifying all services are healthy"
-                echo "=========================================="
-
-                // Check Flask backend
-                sh """
-                    echo "Checking Flask backend..."
-                    curl -f http://localhost:5000/api/health || \
-                    (echo "Backend health check failed" && exit 1)
-                    echo "Flask backend: OK"
-                """
-
-                // Check ML service
-                sh """
-                    echo "Checking ML service..."
-                    curl -f http://localhost:5001/health || \
-                    (echo "ML service health check failed" && exit 1)
-                    echo "ML service: OK"
-                """
-
-                // Check frontend
-                sh """
-                    echo "Checking frontend..."
-                    curl -f http://localhost || \
-                    (echo "Frontend health check failed" && exit 1)
-                    echo "Frontend: OK"
-                """
-
+                sh "curl -f http://localhost:5000/api/health || (echo 'Backend health check failed' && exit 1)"
+                sh "curl -f http://localhost:5001/health || (echo 'ML service health check failed' && exit 1)"
+                sh "curl -f http://localhost || (echo 'Frontend health check failed' && exit 1)"
                 echo "All health checks passed."
             }
         }
     }
 
-    // ── Post actions ─────────────────────────────────────────────
     post {
-
         success {
             echo "=========================================="
             echo " BUILD SUCCEEDED"
             echo " App running at http://localhost"
             echo "=========================================="
         }
-
         failure {
             echo "=========================================="
             echo " BUILD FAILED"
-            echo " Stopping containers..."
             echo "=========================================="
-            sh "docker-compose -f ${COMPOSE_FILE} down || true"
         }
-
         always {
-            echo "Pipeline finished. Cleaning workspace..."
-            cleanWs(
-                cleanWhenSuccess: false,
-                cleanWhenFailure: false,
-                cleanWhenAborted: true
-            )
+            echo "Pipeline finished."
         }
     }
 }
