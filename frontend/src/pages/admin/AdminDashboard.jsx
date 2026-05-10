@@ -2,7 +2,7 @@ import { useState } from 'react'
 import {
   Users, Activity, TrendingUp, Server,
   UserPlus, Download, FileText, RefreshCw,
-  CheckCircle, AlertCircle, Clock
+  CheckCircle, Clock
 } from 'lucide-react'
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid,

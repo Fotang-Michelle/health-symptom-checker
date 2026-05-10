@@ -1,4 +1,3 @@
-import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   Activity, ClipboardCheck, Target, Heart,
@@ -32,29 +31,29 @@ const FALLBACK_TREND = [
 
 const SEV_COLOR = { low: 'badge-green', medium: 'badge-amber', high: 'badge-red' }
 
+function getGreeting() {
+  const h = new Date().getHours()
+  if (h < 12) return 'Good morning'
+  if (h < 17) return 'Good afternoon'
+  return 'Good evening'
+}
+
 export default function UserDashboard() {
   const { history, loading: historyLoading } = useHistory()
   const { stats, chart, loading: statsLoading } = useDashboard()
   const { user } = useAuth()
   const navigate = useNavigate()
-  const [greeting, setGreeting] = useState('')
 
-  useEffect(() => {
-    const h = new Date().getHours()
-    setGreeting(h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening')
-  }, [])
-
-  // Use real data from backend, fall back to safe defaults
-  const totalChecks  = stats?.total_checks    ?? history.length
-  const lastPred     = stats?.last_prediction ?? history[0]?.top_prediction ?? '—'
-  const healthScore  = stats?.health_score    ?? 80
-  const lastDate     = stats?.last_check_date ?? history[0]?.created_at ?? ''
-  const trendData    = chart?.monthly_trend   ?? FALLBACK_TREND
+  const greeting    = getGreeting()
+  const totalChecks = stats?.total_checks    ?? history.length
+  const lastPred    = stats?.last_prediction ?? history[0]?.top_prediction ?? '—'
+  const healthScore = stats?.health_score    ?? 80
+  const lastDate    = stats?.last_check_date ?? history[0]?.created_at ?? ''
+  const trendData   = chart?.monthly_trend   ?? FALLBACK_TREND
   const recentChecks = history.slice(0, 5)
 
   return (
     <>
-      {/* Page header */}
       <div className="db-page-head">
         <h1 className="db-page-title">
           {greeting}, {user?.name?.split(' ')[0] || 'there'} 👋
@@ -62,7 +61,6 @@ export default function UserDashboard() {
         <p className="db-page-sub">Here's your health overview for today.</p>
       </div>
 
-      {/* Stats cards */}
       <div className="db-stats">
         <StatCard
           icon={ClipboardCheck}
@@ -97,10 +95,7 @@ export default function UserDashboard() {
         />
       </div>
 
-      {/* Recent checks + health tips */}
       <div className="db-row cols-2">
-
-        {/* Recent checks table */}
         <div className="db-card">
           <div className="db-card-head">
             <span className="db-card-title">Recent Symptom Checks</span>
@@ -157,9 +152,8 @@ export default function UserDashboard() {
                           <td>
                             <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
                               {(check.symptoms || []).slice(0, 2).map(s => (
-                                <span key={s} className="badge badge-blue" style={{ fontSize: 10 }}>
-                                  {s}
-                                </span>
+                                <span key={s} className="badge badge-blue"
+                                  style={{ fontSize: 10 }}>{s}</span>
                               ))}
                               {check.symptoms?.length > 2 && (
                                 <span style={{ fontSize: 11, color: 'var(--text3)' }}>
@@ -184,7 +178,6 @@ export default function UserDashboard() {
           </div>
         </div>
 
-        {/* Health tips */}
         <div className="db-card">
           <div className="db-card-head">
             <span className="db-card-title">Health Tips</span>
@@ -204,7 +197,6 @@ export default function UserDashboard() {
         </div>
       </div>
 
-      {/* CTA card */}
       <div className="db-cta">
         <div>
           <p className="db-cta-t">How are you feeling today?</p>
@@ -220,7 +212,6 @@ export default function UserDashboard() {
         </button>
       </div>
 
-      {/* Trend chart */}
       <div className="db-card">
         <div className="db-card-head">
           <span className="db-card-title">Symptom Check Trends</span>

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Users as UsersIcon, Search, UserPlus, Filter, MoreVertical } from 'lucide-react'
+import { Users as UsersIcon, Search, UserPlus } from 'lucide-react'
 
 const ALL_USERS = [
   { id:1,  name:'Alice Mbeki',     email:'alice@example.com',    joined:'2026-01-15', status:'active',   role:'user',  checks:12 },

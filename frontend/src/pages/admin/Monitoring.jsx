@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Monitor, Server, Activity, CheckCircle, AlertCircle, Clock, RefreshCw } from 'lucide-react'
+import { Monitor, Server, Activity, CheckCircle, Clock, RefreshCw } from 'lucide-react'
 
 const SERVICES = [
   { name:'Flask API',    port:'5000', url:'http://localhost:5000', status:'online',  latency:'24ms',  uptime:'99.9%', requests:1847, icon:Server,       color:'var(--blue)',   bg:'var(--blue-light)'   },

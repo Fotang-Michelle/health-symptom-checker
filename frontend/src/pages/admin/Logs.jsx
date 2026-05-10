@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { FileText, Download, Filter } from 'lucide-react'
+import { FileText, Download} from 'lucide-react'
 
 const ALL_LOGS = [
   { id:1,  time:'2026-05-08 12:34:01', level:'INFO',    service:'Flask',    user:'alice@example.com',  msg:'POST /api/symptoms 200 OK',             duration:'142ms' },
