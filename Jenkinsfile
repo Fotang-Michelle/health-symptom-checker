@@ -151,7 +151,7 @@ pipeline {
         stage("Docker Build") {
             steps {
                 echo "Building Docker images..."
-                sh "docker-compose -f docker-compose.yml build --no-cache"
+                sh "docker compose -f docker-compose.yml build --no-cache"
                 echo "Docker images built."
             }
         }
@@ -159,10 +159,10 @@ pipeline {
         stage("Run Application") {
             steps {
                 echo "Starting all services..."
-                sh "docker-compose -f docker-compose.yml down --remove-orphans || true"
-                sh "docker-compose -f docker-compose.yml up -d"
+                sh "docker compose -f docker-compose.yml down --remove-orphans || true"
+                sh "docker compose -f docker-compose.yml up -d"
                 sh "sleep 20"
-                sh "docker-compose -f docker-compose.yml ps"
+                sh "docker compose -f docker-compose.yml ps"
                 echo "Application is running at http://localhost"
             }
         }
