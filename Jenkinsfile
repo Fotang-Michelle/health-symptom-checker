@@ -169,18 +169,11 @@ pipeline {
 
       stage("Health Check") {
     steps {
-        script {
-            // Give services a moment to fully initialize
-            echo "Waiting for services to stabilize..."
-            sleep 10 
-
-            // Use service names (backend, ml_service, frontend) instead of localhost
-            sh "curl -f http://health-symptom-checker-backend:5000/api/health || (echo 'Backend health check failed' && exit 1)"
-            sh "curl -f http://health-symptom-checker-ml_service || (echo 'ML service health check failed' && exit 1)"
-            sh "curl -f http://health-symptom-checker-frontend:80 || (echo 'Frontend health check failed' && exit 1)"
-            
-            echo "All health checks passed."
-        }
+        sh "sleep 10"
+        sh "curl -f http://localhost:5000/api/health || (echo 'Backend health check failed' && exit 1)"
+        sh "curl -f http://localhost:5001/health || (echo 'ML service health check failed' && exit 1)"
+        sh "curl -f http://localhost:80 || (echo 'Frontend health check failed' && exit 1)"
+        echo "All health checks passed."
     }
 }
     }
