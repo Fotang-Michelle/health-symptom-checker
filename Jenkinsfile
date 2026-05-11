@@ -171,14 +171,12 @@ pipeline {
     steps {
         sh "sleep 30"
         sh """
-            HOST_IP=\$(ip route | grep default | awk '{print \$3}')
-            echo "Host IP: \$HOST_IP"
-            curl -f http://\$HOST_IP:5000/api/health || (echo 'Backend health check failed' && exit 1)
-            echo 'Backend: OK'
-            curl -f http://\$HOST_IP:5001/health || (echo 'ML service health check failed' && exit 1)
-            echo 'ML Service: OK'
-            curl -f http://\$HOST_IP:80 || (echo 'Frontend health check failed' && exit 1)
-            echo 'Frontend: OK'
+            HOST_IP="172.17.0.1"
+echo "Testing against Docker Host IP: $HOST_IP"
+
+curl -f http://$HOST_IP:5000/api/health || (echo 'Backend health check failed' && exit 1)
+curl -f http://$HOST_IP:5001/health || (echo 'ML service health check failed' && exit 1)
+curl -f http://$HOST_IP:80 || (echo 'Frontend health check failed' && exit 1)
         """
         echo "All health checks passed."
     }
