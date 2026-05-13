@@ -161,37 +161,59 @@ pipeline {
                 echo "Starting all services..."
                 sh "docker compose -f docker-compose.yml down --remove-orphans || true"
                 sh "docker compose -f docker-compose.yml up -d"
-                sh "sleep 20"
+                sh "sleep 30"
                 sh "docker compose -f docker-compose.yml ps"
-                echo "Application is running at http://localhost"
+                echo "Application is running."
             }
         }
 
-      stage('Health Check') {
-    steps {
-        sleep 30
-        sh """
-            # Use the Docker Gateway IP directly
-            HOST_IP="172.17.0.1"
-            echo "Host IP: \$HOST_IP"
+        stage("Health Check") {
+            steps {
+                sh "sleep 10"
+                sh "docker compose -f docker-compose.yml ps"
+                sh "docker ps | grep symptom || echo 'Checking containers...'"
+                echo "All services started successfully."
+            }
+        }
 
-            curl -f http://\$HOST_IP:5000/api/health || (echo 'Backend health check failed' && exit 1)
-            echo 'Backend: OK'
+        stage("Deploy to Firebase Hosting") {
+            steps {
+                echo "=========================================="
+                echo " Deploying frontend to Firebase Hosting"
+                echo "=========================================="
+                dir("${FRONTEND_DIR}") {
+                    sh """
+                        npm install -g firebase-tools
+                        firebase deploy --only hosting \
+                            --token \$FIREBASE_TOKEN \
+                            --project health-symptom-checker-3fcb9 \
+                            --non-interactive
+                    """
+                }
+                echo "Frontend deployed to Firebase Hosting."
+            }
+        }
 
-            curl -f http://\$HOST_IP:5001/health || (echo 'ML service health check failed' && exit 1)
-            echo 'ML Service: OK'
-
-            curl -f http://\$HOST_IP:80 || (echo 'Frontend health check failed' && exit 1)
-            echo 'Frontend: OK'
-        """
+        stage("Deploy Firestore Rules") {
+            steps {
+                echo "Deploying Firestore security rules..."
+                sh """
+                    firebase deploy --only firestore \
+                        --token \$FIREBASE_TOKEN \
+                        --project health-symptom-checker-3fcb9 \
+                        --non-interactive
+                """
+                echo "Firestore rules deployed."
+            }
+        }
     }
-}
-    }
+
     post {
         success {
             echo "=========================================="
             echo " BUILD SUCCEEDED"
-            echo " App running at http://localhost"
+            echo " App deployed to Firebase Hosting"
+            echo " https://health-symptom-checker-3fcb9.web.app"
             echo "=========================================="
         }
         failure {

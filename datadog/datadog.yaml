@@ -1,0 +1,32 @@
+# ── Datadog Agent Configuration ──────────────────────────────────
+# This file configures the Datadog agent that runs as a container
+# alongside your Flask, ML, and React services.
+
+api_key: e4268be82e27c050f18472fff47cb71d
+
+site: datadoghq.eu
+
+# ── Hostname ──────────────────────────────────────────────────────
+hostname: symptom-checker-app
+
+# ── Log collection ────────────────────────────────────────────────
+logs_enabled: true
+logs_config:
+  container_collect_all: true
+
+# ── APM (Application Performance Monitoring) ─────────────────────
+apm_config:
+  enabled: true
+  apm_non_local_traffic: true
+
+# ── Process monitoring ────────────────────────────────────────────
+process_config:
+  enabled: true
+
+# ── Docker integration ────────────────────────────────────────────
+listeners:
+  - name: docker
+
+config_providers:
+  - name: docker
+    polling: true

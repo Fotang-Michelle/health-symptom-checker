@@ -2,7 +2,7 @@ version: "3.9"
 
 services:
 
-  # ── Frontend (React + Nginx) ───────────────────────────────────
+  # ── Frontend ──────────────────────────────────────────────────
   frontend:
     build:
       context: ./frontend
@@ -16,8 +16,10 @@ services:
     networks:
       - symptom_network
     restart: unless-stopped
+    labels:
+      com.datadoghq.ad.logs: '[{"source":"nginx","service":"frontend"}]'
 
-  # ── Backend (Flask) ────────────────────────────────────────────
+  # ── Backend ───────────────────────────────────────────────────
   backend:
     build:
       context: ./backend
@@ -30,6 +32,11 @@ services:
       - SECRET_KEY=${SECRET_KEY:-supersecretkey123}
       - ML_SERVICE_URL=http://ml_service:5001
       - FIREBASE_KEY_PATH=app/firebase/serviceAccountKey.json
+      - DD_AGENT_HOST=datadog
+      - DD_TRACE_AGENT_PORT=8126
+      - DD_SERVICE=flask-backend
+      - DD_ENV=production
+      - DD_VERSION=1.0.0
     volumes:
       - ./backend/app/firebase/serviceAccountKey.json:/app/app/firebase/serviceAccountKey.json:ro
       - backend_logs:/app/logs
@@ -45,8 +52,10 @@ services:
       timeout: 10s
       retries: 3
       start_period: 15s
+    labels:
+      com.datadoghq.ad.logs: '[{"source":"flask","service":"flask-backend"}]'
 
-  # ── ML Service (Flask + scikit-learn) ─────────────────────────
+  # ── ML Service ─────────────────────────────────────────────────
   ml_service:
     build:
       context: ./ml-service
@@ -54,6 +63,12 @@ services:
     container_name: symptom_ml
     ports:
       - "5001:5001"
+    environment:
+      - DD_AGENT_HOST=datadog
+      - DD_TRACE_AGENT_PORT=8126
+      - DD_SERVICE=ml-service
+      - DD_ENV=production
+      - DD_VERSION=1.0.0
     networks:
       - symptom_network
     restart: unless-stopped
@@ -63,12 +78,34 @@ services:
       timeout: 10s
       retries: 3
       start_period: 30s
+    labels:
+      com.datadoghq.ad.logs: '[{"source":"flask","service":"ml-service"}]'
 
-# ── Named volumes ──────────────────────────────────────────────
+  # ── Datadog Agent ──────────────────────────────────────────────
+  datadog:
+    image: datadog/agent:latest
+    container_name: symptom_datadog
+    environment:
+      - DD_API_KEY=${DD_API_KEY}
+      - DD_SITE=datadoghq.eu
+      - DD_LOGS_ENABLED=true
+      - DD_LOGS_CONFIG_CONTAINER_COLLECT_ALL=true
+      - DD_APM_ENABLED=true
+      - DD_APM_NON_LOCAL_TRAFFIC=true
+      - DD_PROCESS_AGENT_ENABLED=true
+      - DD_DOGSTATSD_NON_LOCAL_TRAFFIC=true
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /proc/:/host/proc/:ro
+      - /sys/fs/cgroup/:/host/sys/fs/cgroup:ro
+      - ./datadog/datadog.yaml:/etc/datadog-agent/datadog.yaml:ro
+    networks:
+      - symptom_network
+    restart: unless-stopped
+
 volumes:
   backend_logs:
 
-# ── Network ────────────────────────────────────────────────────
 networks:
   symptom_network:
     driver: bridge
