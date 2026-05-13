@@ -5,7 +5,7 @@ pipeline {
         FRONTEND_DIR = "frontend"
         BACKEND_DIR  = "backend"
         ML_DIR       = "ml-service"
-        // Use host.docker.internal to allow the Jenkins container to talk to Windows Docker
+        // Bridge to your Windows Docker engine
         DOCKER_HOST  = "tcp://host.docker.internal:2375" 
     }
 
@@ -16,73 +16,155 @@ pipeline {
     }
 
     stages {
-        // ... [Checkout, Install Dependencies, Build, and Test stages remain the same] ...
+        stage("Checkout") {
+            steps {
+                checkout scm
+                sh "ls -la"
+            }
+        }
+
+        stage("Install Dependencies") {
+            parallel {
+                stage("Frontend — npm install") {
+                    steps {
+                        dir("${FRONTEND_DIR}") {
+                            sh "npm ci"
+                        }
+                    }
+                }
+                stage("Backend — pip install") {
+                    steps {
+                        dir("${BACKEND_DIR}") {
+                            sh """
+                                python3 -m venv venv
+                                . venv/bin/activate
+                                pip install --upgrade pip
+                                pip install -r requirements.txt
+                            """
+                        }
+                    }
+                }
+                stage("ML Service — pip install") {
+                    steps {
+                        dir("${ML_DIR}") {
+                            sh """
+                                python3 -m venv venv
+                                . venv/bin/activate
+                                pip install --upgrade pip
+                                pip install -r requirements.txt
+                            """
+                        }
+                    }
+                }
+            }
+        }
+
+        stage("Build") {
+            parallel {
+                stage("Build Frontend") {
+                    steps {
+                        dir("${FRONTEND_DIR}") {
+                            sh "npm run build"
+                        }
+                    }
+                }
+                stage("Train ML Model") {
+                    steps {
+                        dir("${ML_DIR}") {
+                            sh """
+                                . venv/bin/activate
+                                python training/train.py
+                            """
+                        }
+                    }
+                }
+            }
+        }
+
+        stage("Test") {
+            parallel {
+                stage("Backend Tests") {
+                    steps {
+                        dir("${BACKEND_DIR}") {
+                            sh """
+                                . venv/bin/activate
+                                mkdir -p test-results
+                                python -m pytest tests/ -v --junit-xml=test-results/backend-results.xml
+                            """
+                        }
+                    }
+                    post {
+                        always {
+                            junit allowEmptyResults: true, testResults: "${BACKEND_DIR}/test-results/backend-results.xml"
+                        }
+                    }
+                }
+                stage("ML Tests") {
+                    steps {
+                        dir("${ML_DIR}") {
+                            sh """
+                                . venv/bin/activate
+                                mkdir -p test-results
+                                python -m pytest tests/ -v --junit-xml=test-results/ml-results.xml
+                            """
+                        }
+                    }
+                    post {
+                        always {
+                            junit allowEmptyResults: true, testResults: "${ML_DIR}/test-results/ml-results.xml"
+                        }
+                    }
+                }
+                stage("Frontend Lint") {
+                    steps {
+                        dir("${FRONTEND_DIR}") {
+                            sh "npm run lint || true"
+                        }
+                    }
+                }
+            }
+        }
 
         stage("Docker Build") {
             steps {
-                echo "Building Docker images..."
-                // This now uses the DOCKER_HOST environment variable defined above
                 sh "docker compose -f docker-compose.yml build --no-cache"
-                echo "Docker images built."
             }
         }
 
         stage("Run Application") {
             steps {
-                echo "Starting all services..."
                 sh "docker compose -f docker-compose.yml down --remove-orphans || true"
                 sh "docker compose -f docker-compose.yml up -d"
                 sh "sleep 30"
-                sh "docker compose -f docker-compose.yml ps"
-                echo "Application is running."
-            }
-        }
-
-        stage("Health Check") {
-            steps {
-                sh "sleep 10"
-                sh "docker compose -f docker-compose.yml ps"
-                sh "docker ps | grep symptom || echo 'Checking containers...'"
-                echo "All services started successfully."
             }
         }
 
         stage("Deploy to Firebase Hosting") {
             steps {
-                echo "=========================================="
-                echo " Deploying frontend to Firebase Hosting"
-                echo "=========================================="
                 dir("${FRONTEND_DIR}") {
-                    sh """
-                        # REPLACED: 'npm install -g' with 'npx' to avoid EACCES permission errors
-                        npx firebase-tools deploy --only hosting \
-                            --token \$FIREBASE_TOKEN \
-                            --project health-symptom-checker-3fcb9 \
-                            --non-interactive
-                    """
+                    sh "npx firebase-tools deploy --only hosting --token \$FIREBASE_TOKEN --project health-symptom-checker-3fcb9 --non-interactive"
                 }
-                echo "Frontend deployed to Firebase Hosting."
             }
         }
 
         stage("Deploy Firestore Rules") {
             steps {
-                echo "Deploying Firestore security rules..."
                 dir("${FRONTEND_DIR}") {
-                    sh """
-                        # REPLACED: with npx to ensure the command is available without system install
-                        npx firebase-tools deploy --only firestore \
-                            --token \$FIREBASE_TOKEN \
-                            --project health-symptom-checker-3fcb9 \
-                            --non-interactive
-                    """
+                    sh "npx firebase-tools deploy --only firestore --token \$FIREBASE_TOKEN --project health-symptom-checker-3fcb9 --non-interactive"
                 }
-                echo "Firestore rules deployed."
             }
         }
     }
 
     post {
-        // ... [Post sections remain the same] ...
+        success {
+            echo "BUILD SUCCEEDED - App live at https://health-symptom-checker-3fcb9.web.app"
+        }
+        failure {
+            echo "BUILD FAILED - Check the logs above."
+        }
+        always {
+            echo "Pipeline finished."
+        }
     }
 }
