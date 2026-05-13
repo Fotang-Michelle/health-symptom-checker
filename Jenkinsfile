@@ -142,7 +142,12 @@ pipeline {
         stage("Deploy to Firebase Hosting") {
             steps {
                 dir("${FRONTEND_DIR}") {
-                    sh "npx firebase-tools deploy --only hosting --token \$FIREBASE_TOKEN --project health-symptom-checker-3fcb9 --non-interactive"
+                    sh """
+                        npx firebase-tools deploy --only hosting \
+                            --token '${FIREBASE_TOKEN}' \
+                            --project health-symptom-checker-3fcb9 \
+                            --non-interactive
+                    """
                 }
             }
         }
@@ -150,7 +155,12 @@ pipeline {
         stage("Deploy Firestore Rules") {
             steps {
                 dir("${FRONTEND_DIR}") {
-                    sh "npx firebase-tools deploy --only firestore --token \$FIREBASE_TOKEN --project health-symptom-checker-3fcb9 --non-interactive"
+                    sh """
+                        npx firebase-tools deploy --only firestore \
+                            --token '${FIREBASE_TOKEN}' \
+                            --project health-symptom-checker-3fcb9 \
+                            --non-interactive
+                    """
                 }
             }
         }
