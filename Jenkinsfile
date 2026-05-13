@@ -128,7 +128,7 @@ pipeline {
 
         stage("Docker Build") {
             steps {
-                sh "docker compose -f docker-compose.yml build --no-cache"
+                sh "docker compose -f docker-compose.yml build"
             }
         }
 
