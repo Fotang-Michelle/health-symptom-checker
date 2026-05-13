@@ -222,13 +222,12 @@ VITE_FIREBASE_MESSAGING_SENDER_ID=\${FB_SENDER_ID}
 VITE_FIREBASE_APP_ID=\${FB_APP_ID}
 VITE_FIREBASE_MEASUREMENT_ID=\${FB_MEASUREMENT_ID}
 EOF
-                            npm run build
-                            npm install -g firebase-tools
-                            firebase deploy --only hosting \
-                                --token \${FIREBASE_TOKEN} \
-                                --project health-symptom-checker-3fcb9 \
-                                --non-interactive
-                        """
+    npm run build
+    npx firebase-tools deploy --only hosting \
+        --token \${FIREBASE_TOKEN} \
+        --project health-symptom-checker-3fcb9 \
+        --non-interactive
+     """
                     }
                 }
                 echo "Frontend deployed to Firebase Hosting."
@@ -239,12 +238,12 @@ EOF
             steps {
                 echo "Deploying Firestore security rules..."
                 withCredentials([string(credentialsId: 'FIREBASE_TOKEN', variable: 'FIREBASE_TOKEN')]) {
-                    sh """
-                        firebase deploy --only firestore \
-                            --token \${FIREBASE_TOKEN} \
-                            --project health-symptom-checker-3fcb9 \
-                            --non-interactive
-                    """
+    sh """
+         npx firebase-tools deploy --only firestore \
+            --token \${FIREBASE_TOKEN} \
+            --project health-symptom-checker-3fcb9 \
+            --non-interactive
+   """
                 }
                 echo "Firestore rules deployed."
             }
