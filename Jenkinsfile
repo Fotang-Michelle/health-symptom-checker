@@ -7,6 +7,7 @@ pipeline {
         ML_DIR       = "ml-service"
         // Bridge to your Windows Docker engine
         DOCKER_HOST  = "tcp://host.docker.internal:2375" 
+        FIREBASE_TOKEN = credentials('FIREBASE_TOKEN')
     }
 
     options {
