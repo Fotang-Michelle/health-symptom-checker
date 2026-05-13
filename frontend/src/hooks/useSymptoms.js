@@ -31,7 +31,9 @@ export function useSymptoms() {
           duration_ms:      Date.now() - startTime,
           source:           data.source || 'ml'
         })
-      } catch (e) {}
+      } catch {
+        /* ignore analytics logging errors */
+      }
 
       return data
     } catch (err) {
@@ -40,10 +42,12 @@ export function useSymptoms() {
       // Log error to Firebase Analytics
       try {
         logEvent(analytics, 'symptom_check_error', {
-          error:   err.message,
+          error:    err.message,
           symptoms: selectedSymptoms.length
         })
-      } catch (e) {}
+      } catch {
+        /* ignore analytics logging errors */
+      }
     } finally {
       setLoading(false)
     }

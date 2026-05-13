@@ -19,8 +19,8 @@ instance.interceptors.request.use(
       const t = trace(perf, `api_${config.method}_${config.url?.replace(/\//g, '_')}`)
       t.start()
       config._perfTrace = t
-    } catch (e) {
-      // Performance monitoring not available
+    } catch {
+      // Performance monitoring not available (lint fix: removed unused 'e')
     }
 
     if (import.meta.env.DEV) {
@@ -43,7 +43,9 @@ instance.interceptors.response.use(
         response.config._perfTrace.putMetric('status_code', response.status)
         response.config._perfTrace.stop()
       }
-    } catch (e) {}
+    } catch {
+      /* ignore trace errors */
+    }
 
     // Log to Firebase Analytics
     try {
@@ -52,7 +54,9 @@ instance.interceptors.response.use(
         method:   response.config.method,
         status:   response.status
       })
-    } catch (e) {}
+    } catch {
+      /* ignore analytics errors */
+    }
 
     if (import.meta.env.DEV) {
       console.log(`[API] ${response.status} ${response.config.url}`)
@@ -73,7 +77,9 @@ instance.interceptors.response.use(
         error.config._perfTrace.putMetric('status_code', status || 0)
         error.config._perfTrace.stop()
       }
-    } catch (e) {}
+    } catch {
+      /* ignore trace errors */
+    }
 
     // Log error to Firebase Analytics
     try {
@@ -82,7 +88,9 @@ instance.interceptors.response.use(
         status:   status,
         message:  message
       })
-    } catch (e) {}
+    } catch {
+      /* ignore analytics errors */
+    }
 
     if (import.meta.env.DEV) {
       console.error(`[API] Error ${status}:`, message)
