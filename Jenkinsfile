@@ -83,7 +83,7 @@ pipeline {
                             dir("${FRONTEND_DIR}") {
                                 sh """
                                     cat > .env.production << EOF
-VITE_API_URL=/api
+VITE_API_URL=http://129.0.102.16:5000/api
 VITE_FIREBASE_API_KEY=\${FB_API_KEY}
 VITE_FIREBASE_AUTH_DOMAIN=\${FB_AUTH_DOMAIN}
 VITE_FIREBASE_PROJECT_ID=\${FB_PROJECT_ID}
@@ -213,7 +213,7 @@ EOF
                     dir("${FRONTEND_DIR}") {
                         sh """
                             cat > .env.production << EOF
-VITE_API_URL=/api
+VITE_API_URL=http://129.0.102.16:5000/api
 VITE_FIREBASE_API_KEY=\${FB_API_KEY}
 VITE_FIREBASE_AUTH_DOMAIN=\${FB_AUTH_DOMAIN}
 VITE_FIREBASE_PROJECT_ID=\${FB_PROJECT_ID}
