@@ -16,9 +16,9 @@ def create_app():
 
     CORS(app, resources={r"/api/*": {"origins": [
         "http://localhost:5173",
-    "http://localhost:3000",
     "https://health-symptom-checker-3fcb9.web.app",
-    "https://health-symptom-checker-3fcb9.firebaseapp.com"
+    "https://health-symptom-checker-3fcb9.firebaseapp.com",
+    "*"
     ]}})
 
     # Logging must be first
