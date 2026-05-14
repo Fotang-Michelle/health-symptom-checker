@@ -1,6 +1,7 @@
+/* eslint-disable no-unused-vars */
 import { initializeApp } from 'firebase/app'
 import { getPerformance, trace } from 'firebase/performance'
-import { getAnalytics, logEvent } from 'firebase/analytics'
+import { getAnalytics, logEvent, isSupported } from 'firebase/analytics'
 
 const firebaseConfig = {
   apiKey:            import.meta.env.VITE_FIREBASE_API_KEY,
@@ -12,8 +13,42 @@ const firebaseConfig = {
   measurementId:     import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
 }
 
-const app        = initializeApp(firebaseConfig)
-const perf       = getPerformance(app)
-const analytics  = getAnalytics(app)
+const app  = initializeApp(firebaseConfig)
+let perf   = null
+let analytics = null
 
-export { app, perf, analytics, trace, logEvent }
+// Only init performance if running in browser
+try {
+  perf = getPerformance(app)
+} catch (_e) {
+  console.warn('Firebase Performance not available:', _e.message)
+}
+
+// Only init analytics if supported and measurement ID is real
+const measurementId = import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
+if (measurementId && measurementId !== 'G-XXXXXXXX') {
+  isSupported().then(supported => {
+    if (supported) {
+      analytics = getAnalytics(app)
+    }
+  }).catch(() => {})
+}
+
+// Safe wrappers that do nothing if firebase is not available
+const safeTrace = (perfInstance, name) => {
+  try {
+    if (perfInstance) return trace(perfInstance, name)
+  } catch (_e) {// ignored
+}
+  return { start: () => {}, stop: () => {}, putAttribute: () => {}, putMetric: () => {} }
+}
+
+const safeLogEvent = (analyticsInstance, name, params) => {
+  try {
+    if (analyticsInstance) logEvent(analyticsInstance, name, params)
+  } catch (_e) {
+// ignored
+  }
+}
+
+export { app, perf, analytics, safeTrace as trace, safeLogEvent as logEvent }

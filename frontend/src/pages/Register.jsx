@@ -14,19 +14,19 @@ export default function Register() {
   const navigate = useNavigate()
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
-    setLoading(true)
-    setError(null)
-    try {
-      const data = await registerUser(email, password, name)
-      login(data.user, data.token)
-      navigate('/')
-    } catch (err) {
-      setError(err.message)
-    } finally {
-      setLoading(false)
-    }
+  e.preventDefault()
+  setError('')
+  setLoading(true)
+  try {
+    const res = await registerUser(email, password, name)
+    login(res.user, res.token)
+    navigate('/dashboard', { replace: true })
+  } catch (err) {
+    setError(err.message || 'Registration failed')
+  } finally {
+    setLoading(false)
   }
+}
 
   return (
     <div className={styles.shell}>

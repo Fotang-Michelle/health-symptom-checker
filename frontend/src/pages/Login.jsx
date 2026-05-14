@@ -13,19 +13,23 @@ export default function Login() {
   const navigate = useNavigate()
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
-    setLoading(true)
-    setError(null)
-    try {
-      const data = await loginUser(email, password)
-      login(data.user, data.token)
-      navigate('/')
-    } catch (err) {
-      setError(err.message)
-    } finally {
-      setLoading(false)
-    }
+  e.preventDefault()
+  setError('')
+  setLoading(true)
+  try {
+    const res = await loginUser(email, password)
+    login(res.user, res.token)
+    // Force navigation after login
+    const dest = res.user?.email === 'admin@symptomcheck.com'
+      ? '/admin'
+      : '/dashboard'
+    navigate(dest, { replace: true })
+  } catch (err) {
+    setError(err.message || 'Login failed')
+  } finally {
+    setLoading(false)
   }
+}
 
   return (
     <div className={styles.shell}>
