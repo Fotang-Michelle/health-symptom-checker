@@ -1,6 +1,7 @@
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { useAuth } from './context/AuthContext'
 
+import Landing  from './pages/Landing'
 import Login    from './pages/Login'
 import Register from './pages/Register'
 
@@ -39,10 +40,10 @@ function AdminRoute({ children }) {
 export default function App() {
   return (
     <Routes>
+      <Route path="/"         element={<Landing />} />
       <Route path="/login"    element={<Login />} />
       <Route path="/register" element={<Register />} />
 
-      {/* User dashboard */}
       <Route path="/dashboard" element={<PrivateRoute><DashboardLayout /></PrivateRoute>}>
         <Route index                  element={<UserDashboard />} />
         <Route path="symptoms"        element={<CheckSymptoms />} />
@@ -52,7 +53,6 @@ export default function App() {
         <Route path="settings"        element={<SettingsPage />} />
       </Route>
 
-      {/* Admin dashboard */}
       <Route path="/admin" element={<AdminRoute><AdminLayout /></AdminRoute>}>
         <Route index               element={<AdminDashboard />} />
         <Route path="users"        element={<Users />} />
@@ -64,8 +64,7 @@ export default function App() {
         <Route path="settings"     element={<AdminSettings />} />
       </Route>
 
-      <Route path="/" element={<PrivateRoute><Navigate to="/dashboard" replace /></PrivateRoute>} />
-      <Route path="*" element={<Navigate to="/dashboard" replace />} />
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   )
 }

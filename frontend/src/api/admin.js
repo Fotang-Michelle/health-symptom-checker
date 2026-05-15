@@ -15,6 +15,16 @@ export async function deleteUser(userId) {
   return res.data
 }
 
+export async function makeUserAdmin(userId) {
+  const res = await axios.post(`/admin/users/${userId}/make-admin`)
+  return res.data
+}
+
+export async function removeUserAdmin(userId) {
+  const res = await axios.post(`/admin/users/${userId}/remove-admin`)
+  return res.data
+}
+
 export async function fetchAdminDiseases() {
   const res = await axios.get('/admin/diseases')
   return res.data

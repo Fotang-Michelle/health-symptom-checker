@@ -5,6 +5,7 @@ import requests
 from datetime import datetime, timezone
 from ..services.auth_service  import _users
 from ..services.history_service import _history
+from ..firebase import is_firebase_available
 
 logger = logging.getLogger(__name__)
 
@@ -264,3 +265,60 @@ def add_log(level: str, service: str, user: str, message: str, duration: str = "
     _logs.insert(0, log)
     if len(_logs) > 500:
         _logs.pop()
+
+def make_user_admin(user_id: str) -> dict:
+    """Promote a user to admin role."""
+    email_to_update = None
+    for email, user in _users.items():
+        if user["id"] == user_id:
+            email_to_update = email
+            break
+
+    if not email_to_update:
+        raise ValueError(f"User {user_id} not found")
+
+    _users[email_to_update]["role"] = "admin"
+    ADMIN_EMAILS.add(email_to_update)
+
+    # Update in Firestore
+    if is_firebase_available():
+        try:
+            from ..firebase import get_db
+            db = get_db()
+            db.collection("users").document(email_to_update).update({"role": "admin"})
+        except Exception as e:
+            logger.error(f"Firestore update failed: {e}")
+
+    logger.info(f"User {email_to_update} promoted to admin")
+    return {"message": f"User {email_to_update} is now an admin", "role": "admin"}
+
+
+def remove_user_admin(user_id: str) -> dict:
+    """Demote an admin back to user role."""
+    email_to_update = None
+    for email, user in _users.items():
+        if user["id"] == user_id:
+            email_to_update = email
+            break
+
+    if not email_to_update:
+        raise ValueError(f"User {user_id} not found")
+
+    # Prevent removing the original admins
+    if email_to_update in {"admin@symptomcheck.com", "admin@example.com"}:
+        raise ValueError("Cannot remove admin role from system administrators")
+
+    _users[email_to_update]["role"] = "user"
+    ADMIN_EMAILS = {"admin@symptomcheck.com", "admin@example.com"}
+
+    # Update in Firestore
+    if is_firebase_available():
+        try:
+            from ..firebase import get_db
+            db = get_db()
+            db.collection("users").document(email_to_update).update({"role": "user"})
+        except Exception as e:
+            logger.error(f"Firestore update failed: {e}")
+
+    logger.info(f"User {email_to_update} demoted to user")
+    return {"message": f"User {email_to_update} is now a regular user", "role": "user"}
