@@ -11,6 +11,6 @@ COPY . .
 
 RUN mkdir -p logs
 
-EXPOSE 8080
+EXPOSE 5000
 
-CMD ["gunicorn", "--bind", "0.0.0.0:8080", "--workers", "2", "--timeout", "120", "run:app"]
+CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--workers", "2", "--timeout", "120", "run:app"]

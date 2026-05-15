@@ -14,12 +14,7 @@ from .middleware.error_handler import register_error_handlers
 def create_app():
     app = Flask(__name__)
 
-    CORS(app, resources={r"/api/*": {"origins": [
-        "http://localhost:5173",
-    "https://health-symptom-checker-3fcb9.web.app",
-    "https://health-symptom-checker-3fcb9.firebaseapp.com",
-    "*"
-    ]}})
+    CORS(app, resources={r"/api/*": {"origins": "http://localhost:5173",}})
 
     # Logging must be first
     setup_logging()
