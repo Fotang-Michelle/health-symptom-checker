@@ -27,7 +27,7 @@ export default function AdminSidebar({ open, onClose }) {
     ? user.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()
     : 'AD'
 
-  const handleLogout = () => { logout(); navigate('/login') }
+  const handleLogout = () => { logout(); navigate('/') }
 
   return (
     <>

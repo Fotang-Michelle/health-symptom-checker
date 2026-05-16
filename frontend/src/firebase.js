@@ -1,54 +1,6 @@
-/* eslint-disable no-unused-vars */
-import { initializeApp } from 'firebase/app'
-import { getPerformance, trace } from 'firebase/performance'
-import { getAnalytics, logEvent, isSupported } from 'firebase/analytics'
-
-const firebaseConfig = {
-  apiKey:            import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain:        import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-  projectId:         import.meta.env.VITE_FIREBASE_PROJECT_ID,
-  storageBucket:     import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-  appId:             import.meta.env.VITE_FIREBASE_APP_ID,
-  measurementId:     import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
-}
-
-const app  = initializeApp(firebaseConfig)
-let perf   = null
-let analytics = null
-
-// Only init performance if running in browser
-try {
-  perf = getPerformance(app)
-} catch (_e) {
-  console.warn('Firebase Performance not available:', _e.message)
-}
-
-// Only init analytics if supported and measurement ID is real
-const measurementId = import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
-if (measurementId && measurementId !== 'G-XXXXXXXX') {
-  isSupported().then(supported => {
-    if (supported) {
-      analytics = getAnalytics(app)
-    }
-  }).catch(() => {})
-}
-
-// Safe wrappers that do nothing if firebase is not available
-const safeTrace = (perfInstance, name) => {
-  try {
-    if (perfInstance) return trace(perfInstance, name)
-  } catch (_e) {// ignored
-}
-  return { start: () => {}, stop: () => {}, putAttribute: () => {}, putMetric: () => {} }
-}
-
-const safeLogEvent = (analyticsInstance, name, params) => {
-  try {
-    if (analyticsInstance) logEvent(analyticsInstance, name, params)
-  } catch (_e) {
-// ignored
-  }
-}
-
-export { app, perf, analytics, safeTrace as trace, safeLogEvent as logEvent }
+// Firebase disabled for local development
+export const app       = null
+export const perf      = null
+export const analytics = null
+export const trace     = () => ({ start: () => {}, stop: () => {}, putAttribute: () => {}, putMetric: () => {} })
+export const logEvent  = () => {}

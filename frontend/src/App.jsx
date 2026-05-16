@@ -27,12 +27,12 @@ import './dashboard.css'
 
 function PrivateRoute({ children }) {
   const { user } = useAuth()
-  return user ? children : <Navigate to="/login" replace />
+  return user ? children : <Navigate to="/" replace />
 }
 
 function AdminRoute({ children }) {
   const { user, isAdmin } = useAuth()
-  if (!user) return <Navigate to="/login" replace />
+  if (!user) return <Navigate to="/" replace />
   if (!isAdmin) return <Navigate to="/dashboard" replace />
   return children
 }

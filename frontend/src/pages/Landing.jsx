@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
-  Heart, Shield, Brain, Activity, ChevronRight,
-  Star, Users, Zap, ArrowRight, Menu, X,
+  Heart, Shield, Brain, Activity, Users, Zap, ArrowRight, Menu, X,
   Droplets, Apple, Moon, Dumbbell, Wind, Sun
 } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
@@ -42,10 +41,13 @@ export default function Landing() {
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
+  useEffect(() => {
   if (user) {
     navigate('/dashboard', { replace: true })
-    return null
   }
+}, [user, navigate])
+
+if (user) return null
 
   return (
     <div style={{ fontFamily: "'DM Sans', 'Segoe UI', sans-serif", background: '#f8fafc', minHeight: '100vh' }}>

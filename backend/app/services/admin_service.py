@@ -9,6 +9,8 @@ from ..firebase import is_firebase_available
 
 logger = logging.getLogger(__name__)
 
+ADMIN_EMAILS = {"admin@symptomcheck.com", "admin@example.com"}
+
 # ── In-memory disease store ──────────────────────────────────────
 _diseases = {
     "d001": { "id":"d001", "name":"Influenza",         "category":"Viral",       "severity":"medium", "symptoms":["fever","chills","cough","fatigue","headache","muscle_aches"], "accuracy":94.0 },
@@ -280,15 +282,6 @@ def make_user_admin(user_id: str) -> dict:
     _users[email_to_update]["role"] = "admin"
     ADMIN_EMAILS.add(email_to_update)
 
-    # Update in Firestore
-    if is_firebase_available():
-        try:
-            from ..firebase import get_db
-            db = get_db()
-            db.collection("users").document(email_to_update).update({"role": "admin"})
-        except Exception as e:
-            logger.error(f"Firestore update failed: {e}")
-
     logger.info(f"User {email_to_update} promoted to admin")
     return {"message": f"User {email_to_update} is now an admin", "role": "admin"}
 
@@ -304,21 +297,11 @@ def remove_user_admin(user_id: str) -> dict:
     if not email_to_update:
         raise ValueError(f"User {user_id} not found")
 
-    # Prevent removing the original admins
     if email_to_update in {"admin@symptomcheck.com", "admin@example.com"}:
         raise ValueError("Cannot remove admin role from system administrators")
 
     _users[email_to_update]["role"] = "user"
-    ADMIN_EMAILS = {"admin@symptomcheck.com", "admin@example.com"}
-
-    # Update in Firestore
-    if is_firebase_available():
-        try:
-            from ..firebase import get_db
-            db = get_db()
-            db.collection("users").document(email_to_update).update({"role": "user"})
-        except Exception as e:
-            logger.error(f"Firestore update failed: {e}")
+    ADMIN_EMAILS.discard(email_to_update)
 
     logger.info(f"User {email_to_update} demoted to user")
     return {"message": f"User {email_to_update} is now a regular user", "role": "user"}

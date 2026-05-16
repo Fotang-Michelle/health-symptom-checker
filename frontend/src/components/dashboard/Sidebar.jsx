@@ -24,7 +24,7 @@ export default function Sidebar({ open, onClose }) {
     ? user.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()
     : (user?.email?.[0] || 'U').toUpperCase()
 
-  const handleLogout = () => { logout(); navigate('/login') }
+  const handleLogout = () => { logout(); navigate('/') }
 
   return (
     <>

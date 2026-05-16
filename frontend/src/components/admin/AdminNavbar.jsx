@@ -75,7 +75,7 @@ export default function AdminNavbar({ onToggleSidebar, darkMode, onToggleDark })
                 User Dashboard
               </div>
               <div style={{ borderTop: '1px solid var(--border)', marginTop: 4, paddingTop: 4 }}>
-                <div onClick={() => { logout(); navigate('/login') }}
+                <div onClick={() => { logout(); navigate('/'); setDrop(false) }}
                   style={{ padding: '8px 12px', fontSize: 13, color: 'var(--red)', borderRadius: 6, cursor: 'pointer' }}
                   onMouseEnter={e => e.currentTarget.style.background = 'var(--red-light)'}
                   onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
